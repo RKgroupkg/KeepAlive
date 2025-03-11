@@ -17,7 +17,7 @@ def custom_ping_function():
 
 # Advanced configuration
 service = KeepAliveService(
-    ping_interval=5,  # ping every 2 minutes 
+    ping_interval=60,  # ping every 2 minutes 
     ping_endpoint="health",  # use /health endpoint instead of /alive
     ping_message="Service is healthy!",
     port=8080,
@@ -26,7 +26,7 @@ service = KeepAliveService(
     external_url=render_url,  # explicitly set URL
     custom_pinger=custom_ping_function,  # use custom ping function
     use_flask=True,
-    log_level=logging.DEBUG,
+    log_level=logging.INFO,
     scheduler_options={
         "job_defaults": {
             "coalesce": True,
