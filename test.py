@@ -8,7 +8,11 @@ logging.basicConfig(level=logging.INFO)
 
 try:
     # Advanced configuration
-    service = KeepAliveService(ping_interval=60)
+    service = KeepAliveService(
+      ping_interval=60,
+      log_level = logging.DEBUG
+    
+    )
 
     # Start the service
     service.start()
