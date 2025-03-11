@@ -1,5 +1,6 @@
 from keepalive import KeepAliveService
 import logging
+import time
 
 
 import os
@@ -40,6 +41,8 @@ service.start()
 # Your actual application code below
 print("Main application running...")
 
-# Get statistics about the service
-stats = service.get_stats()
-print(stats)
+while True:
+  # Get statistics about the service
+  stats = service.get_stats()
+  print(stats)
+  time.sleep(1)
