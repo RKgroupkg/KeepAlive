@@ -17,7 +17,7 @@ def custom_ping_function():
 
 # Advanced configuration
 service = KeepAliveService(
-    ping_interval=120,  # ping every 2 minutes 
+    ping_interval=5,  # ping every 2 minutes 
     ping_endpoint="health",  # use /health endpoint instead of /alive
     ping_message="Service is healthy!",
     port=8080,
