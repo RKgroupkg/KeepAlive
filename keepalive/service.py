@@ -1,10 +1,9 @@
-# keepalive/service.py
 import os
 import time
 import threading
 import socket
 import requests
-from typing import Optional, Dict, Any, Callable, Union
+from typing import Optional, Dict, Any, Callable
 import logging
 import pytz
 from datetime import datetime
@@ -13,6 +12,10 @@ from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask
 
 # Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger("keepalive")
 
 class KeepAliveService:
@@ -35,24 +38,8 @@ class KeepAliveService:
         scheduler_options: Optional[Dict[str, Any]] = None,
         log_level: int = logging.INFO
     ):
-        """
-        Initialize the KeepAliveService.
-        
-        Args:
-            ping_interval: Interval in seconds between pings
-            ping_endpoint: Endpoint path to use for ping
-            ping_message: Message returned when ping endpoint is hit
-            port: Port for the Flask server to run on
-            host: Host for the Flask server to run on
-            timezone: Timezone for the scheduler
-            external_url: URL to ping (defaults to auto-detected URL)
-            custom_pinger: Custom function to execute instead of the default pinger
-            use_flask: Whether to start a Flask server
-            scheduler_options: Additional options for the BackgroundScheduler
-            log_level: Logging level
-        """
         # Set up logging
-        self.configure_logging(log_level)
+        logger.setLevel(log_level)
         
         # Configuration
         self.ping_interval = ping_interval
@@ -75,17 +62,6 @@ class KeepAliveService:
         self._running = False
         
         logger.info(f"KeepAliveService initialized with interval {ping_interval}s and endpoint /{self.ping_endpoint}")
-    
-    def configure_logging(self, log_level: int) -> None:
-        """Set up logging for the service"""
-        logger.setLevel(log_level)
-        
-        # Create handler if none exists
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
     
     def _detect_external_url(self) -> str:
         """Auto-detect the external URL from environment variables or local network"""
@@ -114,6 +90,7 @@ class KeepAliveService:
                 self.custom_pinger()
                 self._stats["total_pings"] += 1
                 self._stats["successful_pings"] += 1
+                logger.info("Custom ping successful")
                 return True
             except Exception as e:
                 logger.error(f"Custom pinger failed: {e}")
@@ -124,21 +101,29 @@ class KeepAliveService:
         url = f"{self.external_url}/{self.ping_endpoint}"
         try:
             start_time = time.time()
+            # Important: Set a reasonable timeout and handle exceptions
             response = requests.get(url, timeout=10)
             elapsed = time.time() - start_time
             
             self._stats["total_pings"] += 1
             
             if response.status_code == 200:
-                logger.info(f"Ping successful in {elapsed:.2f}s")
+                logger.info(f"Ping successful in {elapsed:.2f}s: {url}")
                 self._stats["successful_pings"] += 1
                 return True
             else:
-                logger.error(f"Ping failed with status code {response.status_code}")
+                logger.error(f"Ping failed with status code {response.status_code}: {url}")
                 self._stats["failed_pings"] += 1
                 return False
+        except requests.RequestException as e:
+            # Handle specific request exceptions
+            logger.error(f"Ping failed with request exception: {e} - URL: {url}")
+            self._stats["total_pings"] += 1
+            self._stats["failed_pings"] += 1
+            return False
         except Exception as e:
-            logger.error(f"Ping failed with exception: {e}")
+            # Handle any other exceptions
+            logger.error(f"Ping failed with unexpected exception: {e} - URL: {url}")
             self._stats["total_pings"] += 1
             self._stats["failed_pings"] += 1
             return False
@@ -152,19 +137,36 @@ class KeepAliveService:
             **self.scheduler_options
         }
         
+        # Make sure we only have one scheduler
+        if self.scheduler and self.scheduler.running:
+            logger.info("Scheduler already running, shutting down first")
+            self.scheduler.shutdown()
+        
         self.scheduler = BackgroundScheduler(**scheduler_opts)
         
-        # Add the ping job
+        # Add the ping job with misfire handling
         self.scheduler.add_job(
             self.ping_self,
-            IntervalTrigger(seconds=self.ping_interval),
+            IntervalTrigger(
+                seconds=self.ping_interval, 
+                timezone=tz
+            ),
             id="ping_job",
             name="Keep-alive ping",
-            replace_existing=True
+            replace_existing=True,
+            # Critical: Handle misfires to ensure reliability
+            misfire_grace_time=15,
+            coalesce=True,
+            max_instances=1
         )
         
-        self.scheduler.start()
-        logger.info(f"Scheduler started with {self.ping_interval}s interval")
+        # Start the scheduler with safe error handling
+        try:
+            self.scheduler.start()
+            logger.info(f"Scheduler started with {self.ping_interval}s interval")
+        except Exception as e:
+            logger.error(f"Failed to start scheduler: {e}")
+            raise
     
     def setup_flask(self) -> None:
         """Set up the Flask application with the ping endpoint"""
@@ -174,13 +176,13 @@ class KeepAliveService:
         self.app = Flask(__name__)
         
         # Register the ping endpoint
-        @self.app.route(f"/{self.ping_endpoint}")
+        @self.app.route(f"/{self.ping_endpoint}", methods=["GET"])
         def alive():
             logger.debug("Received ping request")
             return self.ping_message
         
         # Add a stats endpoint
-        @self.app.route("/keepalive/stats")
+        @self.app.route("/keepalive/stats", methods=["GET"])
         def stats():
             uptime = time.time() - self._start_time
             days, remainder = divmod(uptime, 86400)
@@ -209,32 +211,50 @@ class KeepAliveService:
             return
             
         try:
-            self.app.run(host=self.host, port=self.port)
+            # Critical fix: Use threaded=True for better reliability
+            self.app.run(host=self.host, port=self.port, threaded=True)
         except Exception as e:
             logger.error(f"Failed to start Flask server: {e}")
+            # Don't suppress the exception - we want to know if Flask fails to start
+            raise
     
     def start(self) -> "KeepAliveService":
         """Start the KeepAliveService (both Flask server and scheduler)"""
         if self._running:
             logger.warning("KeepAliveService is already running")
             return self
-            
-        # Set up and start Flask server if needed
+        
+        # Set up and start Flask server first
         if self.use_flask:
             self.setup_flask()
-            self.flask_thread = threading.Thread(target=self.run_flask)
-            self.flask_thread.daemon = True
-            self.flask_thread.start()
-            logger.info(f"Flask server started on {self.host}:{self.port}")
+            
+            # Create and start the Flask thread
+            self.flask_thread = threading.Thread(target=self.run_flask, name="KeepAlive-Flask")
+            self.flask_thread.daemon = True  # Make it a daemon so it doesn't block program exit
+            
+            try:
+                self.flask_thread.start()
+                # Critical: Give Flask time to start up before proceeding
+                time.sleep(1)  
+                logger.info(f"Flask server started on {self.host}:{self.port}")
+            except Exception as e:
+                logger.error(f"Failed to start Flask thread: {e}")
+                raise
         
-        # Start the scheduler
-        self.start_scheduler()
+        # Start the scheduler after Flask is running
+        try:
+            self.start_scheduler()
+        except Exception as e:
+            logger.error(f"Failed to start scheduler: {e}")
+            raise
         
         self._running = True
         self._start_time = time.time()
         
-        # Do an initial ping
-        self.ping_self()
+        # Do an initial ping to verify everything is working
+        success = self.ping_self()
+        if not success:
+            logger.warning("Initial ping failed - service may not be properly configured")
         
         return self
     
@@ -245,9 +265,12 @@ class KeepAliveService:
             return
             
         # Stop the scheduler
-        if self.scheduler:
-            self.scheduler.shutdown()
-            logger.info("Scheduler stopped")
+        if self.scheduler and self.scheduler.running:
+            try:
+                self.scheduler.shutdown()
+                logger.info("Scheduler stopped")
+            except Exception as e:
+                logger.error(f"Error shutting down scheduler: {e}")
         
         # Flask server will stop when the main thread exits since it's a daemon
         
@@ -266,6 +289,7 @@ class KeepAliveService:
             "failed_pings": self._stats["failed_pings"],
             "success_rate": (self._stats["successful_pings"] / max(1, self._stats["total_pings"])) * 100,
             "started_at": datetime.fromtimestamp(self._start_time).strftime("%Y-%m-%d %H:%M:%S"),
+            "external_url": self.external_url,
         }
 
 
