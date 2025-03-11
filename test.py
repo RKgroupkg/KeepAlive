@@ -19,7 +19,7 @@ try:
             # Get statistics about the service
             stats = service.get_stats()
             print(stats)
-            time.sleep(1)
+            time.sleep(120) # print stats every 2 min 
         except Exception as e:
             logging.error(f"Error in main loop: {e}")
             time.sleep(5)  # Avoid rapid crashes
