@@ -11,7 +11,7 @@ setup(
       "pytz",
       ],  # List dependencies here
     author="Rkgroup",
-    author_email="rkgroup.com",
+    author_email="rkgroup.coder@gmail.com",
     description="An advnace pinger and keepalive",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
