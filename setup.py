@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="keep-alive-ping",  
-    version="0.0.1",  
+    name="keep_alive_ping",  
+    version="0.0.2",  
     packages=find_packages(),
     install_requires=[
       "Flask>=2.0.0",
@@ -15,7 +15,7 @@ setup(
     description="An advnace pinger and keepalive",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/RKgroupkg/keep-alive-ping",  
+    url="https://github.com/RKgroupkg/KeepAlive",  
     classifiers=[
         "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

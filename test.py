@@ -1,4 +1,4 @@
-from keep-alive-ping import KeepAliveService
+from keep_alive_ping import KeepAliveService
 import logging
 import time
 import os
