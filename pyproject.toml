@@ -3,8 +3,8 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "keepalive"
-version = "0.1.0"
+name = "keep-alive-ping"
+version = "0.0.1"
 description = "A robust, production-grade service to keep web applications alive on platforms like Render and Koyeb"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -39,11 +39,11 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/keepalive"
+"Homepage" = "https://github.com/RKgroupkg/keepalive"
 "Bug Tracker" = "https://github.com/RKgroupkg/keepalive/issues"
 
 [tool.setuptools]
-packages = ["keepalive"]
+packages = ["keep-alive-ping"]
 
 [tool.black]
 line-length = 88

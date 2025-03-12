@@ -1,7 +1,7 @@
-# KeepAlive
+# keep-alive-ping
 
-[![PyPI version](https://img.shields.io/badge/pypi-0.1.0-blue.svg)](https://pypi.org/project/keepalive/)
-[![Python versions](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://pypi.org/project/keepalive/)
+[![PyPI version](https://img.shields.io/badge/pypi-0.1.0-blue.svg)](https://pypi.org/project/keep-alive-ping/)
+[![Python versions](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://pypi.org/project/keep-alive-ping/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 
@@ -50,13 +50,13 @@ A robust, production-grade Python package to keep your web applications alive on
 Install from PyPI:
 
 ```bash
-pip install keepalive
+pip install keep-alive-ping
 ```
 
 Or install from source:
 
 ```bash
-git clone https://github.com/yourusername/keepalive.git
+git clone https://github.com/RKgroupkg/keepalive.git
 cd keepalive
 pip install -e .
 ```
@@ -66,7 +66,7 @@ pip install -e .
 The simplest way to use KeepAlive is to import and create a service:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Create and start the service with default settings
 service = create_service()
@@ -102,7 +102,7 @@ You can configure KeepAlive with the following options:
 Example with custom configuration:
 
 ```python
-from keepalive import KeepAliveService
+from keep-alive-ping import KeepAliveService
 import logging
 
 # Create a service with custom settings
@@ -156,7 +156,7 @@ python myapp.py
 And in your application:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Will use values from environment variables
 service = create_service()
@@ -169,7 +169,7 @@ service = create_service()
 You can define your own function to keep your application alive instead of using the default HTTP ping:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 import time
 
 def custom_ping_function():
@@ -200,7 +200,7 @@ With Flask, the integration is straightforward since KeepAlive uses Flask intern
 
 ```python
 from flask import Flask
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 app = Flask(__name__)
 
@@ -222,7 +222,7 @@ if __name__ == '__main__':
 
 ```python
 from fastapi import FastAPI
-from keepalive import create_service
+from keep-alive-ping import create_service
 import uvicorn
 
 app = FastAPI()
@@ -258,7 +258,7 @@ INSTALLED_APPS = [
 
 # In my_keepalive_app/apps.py
 from django.apps import AppConfig
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 class MyKeepaliveAppConfig(AppConfig):
     name = 'my_keepalive_app'
@@ -298,7 +298,7 @@ KeepAlive provides a built-in statistics endpoint at `/keepalive/stats` that ret
 You can also get these statistics programmatically:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 service = create_service()
 
@@ -313,7 +313,7 @@ print(f"Success rate: {stats['success_rate']}%")
 The KeepAlive service uses APScheduler under the hood. You can pass additional options to the scheduler:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 service = create_service(
     scheduler_options={
@@ -338,7 +338,7 @@ See the [APScheduler documentation](https://apscheduler.readthedocs.io/en/latest
 If you're using another web framework or don't want to start a Flask server:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Option 1: Disable Flask but use the built-in HTTP pinger 
 # (requires your own server to be running)
@@ -368,7 +368,7 @@ If your application uses multiple workers (e.g., with Gunicorn), you should ensu
 ```python
 # In your application entry point
 import os
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Only start KeepAlive in the main process
 if os.environ.get('WORKER_ID', '0') == '0':  # Adapt to your worker ID environment variable
@@ -401,7 +401,7 @@ CMD ["python", "app.py"]
 If you need to stop the service gracefully:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 service = create_service()
 
@@ -531,7 +531,7 @@ Enable debug logging:
 
 ```python
 import logging
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 service = create_service(log_level=logging.DEBUG)
 ```
@@ -553,7 +553,7 @@ KeepAlive offers several advantages:
 While KeepAlive is designed for Python applications, you can use it to ping any HTTP endpoint:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Keep a non-Python application alive
 service = create_service(
@@ -567,7 +567,7 @@ service = create_service(
 KeepAlive is designed for applications that run on a server. Serverless applications typically don't need to be kept alive since they're spun up on demand. However, you could use KeepAlive to periodically ping an API Gateway endpoint to keep a Lambda function warm:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Keep a Lambda function warm
 service = create_service(
@@ -588,7 +588,7 @@ Yes, but you should ensure KeepAlive only runs on one instance to avoid unnecess
 ```python
 # In your application entry point
 import os
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Only start KeepAlive on the primary instance
 if os.environ.get('IS_PRIMARY', 'false') == 'true':
@@ -623,7 +623,7 @@ By default, KeepAlive starts a Flask server that's accessible to anyone who can 
 Example with a more secure configuration:
 
 ```python
-from keepalive import create_service
+from keep-alive-ping import create_service
 import secrets
 
 # Generate a random token
@@ -644,7 +644,7 @@ service = create_service(
 ```python
 import os
 from flask import Flask
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 app = Flask(__name__)
 
@@ -669,7 +669,7 @@ if __name__ == '__main__':
 ```python
 import os
 from fastapi import FastAPI
-from keepalive import create_service
+from keep-alive-ping import create_service
 import uvicorn
 
 app = FastAPI()
@@ -694,7 +694,7 @@ if __name__ == "__main__":
 ```python
 import os
 from flask import Flask
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 app = Flask(__name__)
 
@@ -729,7 +729,7 @@ if __name__ == '__main__':
 
 ```python
 from prometheus_client import Counter, Gauge, start_http_server
-from keepalive import KeepAliveService
+from keep-alive-ping import KeepAliveService
 import time
 import threading
 
@@ -793,8 +793,8 @@ This project is maintained by [Rkgroup](https://github.com/RKgroupkg).
 For support, please open an issue on GitHub or contact 
 
 <p align="center">
-  <a href="https://t.me/Rkgroup_Bot">
-    <img src="https://img.shields.io/static/v1?label=Join&message=Telegram%20Channel&color=blueviolet&style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Channel" />
+  <a href="https://t.me/rkgroup_update">
+    <img src="https://img.shields.io/static/v1?label=Join&message=Telegram%20Channel&color=blueviolet&style=for-the-badge&logo=telegram&logoColor=white" alt="Rkgroup Channel" />
   </a>
   <a href="https://telegram.me/Rkgroup_helpbot">
     <img src="https://img.shields.io/static/v1?label=Join&message=Telegram%20Group&color=blueviolet&style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Group" />

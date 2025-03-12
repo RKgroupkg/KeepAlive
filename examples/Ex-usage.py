@@ -1,5 +1,5 @@
 # examples/basic_usage.py
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 # Simplest usage - automatically keeps the app alive with default settings
 service = create_service()
@@ -10,7 +10,7 @@ print("Main application running...")
 # ----------------------------------------------------------------
 
 # examples/advanced_usage.py
-from keepalive import KeepAliveService
+from keep-alive-ping import KeepAliveService
 import logging
 
 # Custom ping function example
@@ -53,7 +53,7 @@ print(stats)
 
 # examples/fastapi_integration.py
 from fastapi import FastAPI
-from keepalive import create_service
+from keep-alive-ping import create_service
 
 app = FastAPI()
 
